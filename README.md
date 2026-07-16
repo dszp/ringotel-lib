@@ -10,20 +10,26 @@ single consumer can compose both to talk to NetSapiens and Ringotel.
 
 - **`RingotelReadClient`** — the read-only surface over the AdminAPI's JSON-RPC endpoint
   (`getOrganizations`, `getBranches`, `getUsers`, `getUser` with its `devs[]` devices, SIP creds, …).
-- **`RingotelWriteClient`** — the sanctioned mutation surface (`createUser`, `attachUser`, …).
-  *Scaffold today; grows in the write phase, validated against a demo org.*
+- **`RingotelWriteClient`** — the mutation surface: 24 methods across users, orgs, branches and
+  devices (`createUser`, `attachUser`, `setUserPassword`, `resetUserPassword`, …). A **separate class**
+  from the read client, on purpose — see below.
 - **`fetchOrgSnapshot` / `listOrganizations`** — gather an org (org + branches + users + contacts +
   sms trunks) in a few parallel reads, tolerating gaps.
 - **Mapping engine** — a generic, config-driven `source key → Ringotel org` resolver
   (`resolveOrgKey` / `resolveOrgId` / `resolveOrg`) with a NetSapiens default transform. Auto-maps
   pattern-following NS domains (`demo.12345.service` → `demo`); overrides handle the exceptions.
 
-### The read-only guarantee
+### Reads and writes are two classes — and that's the safety property
+
+This package **can** write. What it guarantees is that you choose: `RingotelReadClient` has no mutation
+method on it at all.
 
 The Ringotel AdminAPI is a single JSON-RPC endpoint (`POST /api` with `{method, params}`), so it can't
-be gated at the transport like a REST client. Instead the raw transport (`RingotelHttp`) is **never
-exported** — it's held privately inside the two clients. Want read-only? Construct a
-`RingotelReadClient` and there is literally no write method to call.
+be gated at the transport the way a REST client can hardcode `GET` — `call('deleteUser', …)` is always
+physically possible on the core. So the guarantee is **encapsulation**: the raw transport
+(`RingotelHttp`) is **never exported**, and is held privately inside each client. Want read-only?
+Construct a `RingotelReadClient` and there is literally nothing else to call. A type-level test
+(`pnpm typecheck`) asserts it stays that way.
 
 ## Usage
 
