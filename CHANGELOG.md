@@ -5,6 +5,42 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-07-16
+
+A hardening + packaging release. No breaking changes to the documented API.
+
+### Security
+
+- **The read-only guarantee is now enforced at runtime, not just by TypeScript.** `RingotelReadClient`
+  and `RingotelWriteClient` held their `RingotelHttp` transport as a TS-`private` field, which is
+  erased at runtime — so the fleet API key was reachable via `(readClient as any).http` (and a mutating
+  `call()` could be issued through it). The transport and its token are ECMAScript `#private` now, so a
+  read client handed to a less-trusted module genuinely cannot reach a write or the key. The package
+  `exports` boundary (no deep import of the transport) already held; this closes the in-process gap.
+
+### Fixed
+
+- **Published `dist/` no longer points at source maps that were never shipped.** Every `.js`/`.d.ts`
+  carried a `//# sourceMappingURL` comment while `files` excludes the maps, so consumers' devtools
+  404'd. The publish build emits no pointer; a normal `pnpm build` still writes maps for `link:` consumers.
+- **A prerelease can no longer be published as `latest`.** The release workflow derives npm's dist-tag
+  from the version — prerelease ⇒ `next`, else `latest`.
+- **`require()` gives an accurate error, or works.** Added `require`/`default` export conditions, so
+  `require('@dszp/ringotel-lib')` works on Node ≥22.12 and reports `ERR_REQUIRE_ESM` on older Node
+  instead of the misleading `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+- **The example override template no longer ships as dead weight.** `netsapiens.overrides.example.ts`
+  was compiled into `dist/` but is not re-exported and the `exports` map blocks a deep import, so it
+  was unreachable in the tarball. It's excluded from the published build now; the fictional template
+  still lives in the repo source to copy from.
+
+### Documentation
+
+- `src/http.ts` described `RingotelWriteClient` as "a future" client; it shipped in 0.1.0. The comment
+  ships in `dist/http.js`.
+- README's usage example named the Ringotel client `ns`, which reads as NetSapiens in a library whose
+  whole job is talking to Ringotel; and it claimed the published package ships the example override
+  file, which it does not.
+
 ## [0.1.1] — 2026-07-16
 
 ### Fixed
@@ -47,4 +83,7 @@ Initial public release.
 - `baseUrl` defaults to Ringotel's public shell endpoint and is overridable; nothing in this package
   is bound to a particular deployment.
 
+[Unreleased]: https://github.com/dszp/ringotel-lib/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.2
+[0.1.1]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.1
 [0.1.0]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.0

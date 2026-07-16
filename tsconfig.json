@@ -17,5 +17,6 @@
     "noUncheckedIndexedAccess": false
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts", "src/testkit.ts", "dist", "node_modules"]
+  "//exclude": "netsapiens.overrides.example.ts is a copy-me template, not part of the shipped API — it isn't re-exported and the exports map blocks a deep import, so building it into dist/ only shipped unreachable weight. mapping.test.ts still imports it (vitest transpiles independently of this build).",
+  "exclude": ["src/**/*.test.ts", "src/testkit.ts", "src/netsapiens.overrides.example.ts", "dist", "node_modules"]
 }

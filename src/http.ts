@@ -52,15 +52,15 @@ function hint(status: number): string {
 }
 
 export class RingotelHttp {
-  private readonly endpoint: string;
-  private readonly token: string;
-  private readonly fetchImpl: typeof fetch;
+  readonly #endpoint: string;
+  readonly #token: string;
+  readonly #fetchImpl: typeof fetch;
 
   constructor(cfg: RingotelHttpConfig) {
     const base = (cfg.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '').replace(/\/api$/i, '');
-    this.endpoint = `${base}/api`;
-    this.token = cfg.token;
-    this.fetchImpl = cfg.fetchImpl ?? fetch;
+    this.#endpoint = `${base}/api`;
+    this.#token = cfg.token;
+    this.#fetchImpl = cfg.fetchImpl ?? fetch;
   }
 
   /**
@@ -70,11 +70,11 @@ export class RingotelHttp {
   async call<T = unknown>(method: string, params: Record<string, unknown> = {}): Promise<T> {
     // Call via a local, NOT `this.fetchImpl(...)`: invoking the global fetch as a method of this
     // instance throws "Illegal invocation" in workerd (the global fetch requires a global `this`).
-    const doFetch = this.fetchImpl;
-    const res = await doFetch(this.endpoint, {
+    const doFetch = this.#fetchImpl;
+    const res = await doFetch(this.#endpoint, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.#token}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },

@@ -106,40 +106,40 @@ export interface UpdateBranchInput {
 }
 
 export class RingotelWriteClient {
-  private readonly http: RingotelHttp;
+  readonly #http: RingotelHttp;
 
   constructor(cfg: RingotelWriteClientConfig) {
-    this.http = new RingotelHttp(cfg);
+    this.#http = new RingotelHttp(cfg);
   }
 
   // ── Users ──────────────────────────────────────────────────────────────────
   /** Create a user in a branch. Returns the created user. */
   createUser(input: CreateUserInput): Promise<User> {
-    return this.http.call<User>('createUser', { ...input });
+    return this.#http.call<User>('createUser', { ...input });
   }
   /** Bulk-create users in a branch. `users` is an array of per-user field objects. */
   createUsers(orgid: string, branchid: string, users: Rec[]): Promise<Rec> {
-    return this.http.call<Rec>('createUsers', { orgid, branchid, users });
+    return this.#http.call<Rec>('createUsers', { orgid, branchid, users });
   }
   /** Update mutable fields on a user. (RPC key: `id` = userid.) */
   updateUser(userid: string, orgid: string, changes: UpdateUserInput): Promise<User> {
-    return this.http.call<User>('updateUser', { orgid, id: userid, ...changes });
+    return this.#http.call<User>('updateUser', { orgid, id: userid, ...changes });
   }
   /** Delete a user. (RPC key: `id` = userid.) */
   deleteUser(userid: string, orgid: string): Promise<Rec> {
-    return this.http.call<Rec>('deleteUser', { id: userid, orgid });
+    return this.#http.call<Rec>('deleteUser', { id: userid, orgid });
   }
   /** Bulk-delete users. `users` is an array of user ids (or per-API objects). */
   deleteUsers(orgid: string, users: Array<string | Rec>): Promise<Rec> {
-    return this.http.call<Rec>('deleteUsers', { orgid, users });
+    return this.#http.call<Rec>('deleteUsers', { orgid, users });
   }
   /** Deactivate a user without deleting. (RPC key: `id` = userid.) */
   deactivateUser(userid: string, orgid: string): Promise<Rec> {
-    return this.http.call<Rec>('deactivateUser', { id: userid, orgid });
+    return this.#http.call<Rec>('deactivateUser', { id: userid, orgid });
   }
   /** Recover a previously deleted user (matched by identity fields, not id). */
   recoverDeletedUser(input: RecoverUserInput): Promise<User> {
-    return this.http.call<User>('recoverDeletedUser', { ...input });
+    return this.#http.call<User>('recoverDeletedUser', { ...input });
   }
   /**
    * Link an *unactivated* user as an extension of an *activated* user, so they share one app login.
@@ -149,75 +149,75 @@ export class RingotelWriteClient {
    * = activated user.)
    */
   attachUser(unactivatedUserId: string, activatedUserId: string, orgid: string): Promise<Rec> {
-    return this.http.call<Rec>('attachUser', { id: unactivatedUserId, userid: activatedUserId, orgid });
+    return this.#http.call<Rec>('attachUser', { id: unactivatedUserId, userid: activatedUserId, orgid });
   }
   /** Unlink an unactivated user extension from its activated user. (RPC: `id` = unactivated, `userid` = activated.) */
   detachUser(unactivatedUserId: string, activatedUserId: string, orgid: string): Promise<Rec> {
-    return this.http.call<Rec>('detachUser', { id: unactivatedUserId, userid: activatedUserId, orgid });
+    return this.#http.call<Rec>('detachUser', { id: unactivatedUserId, userid: activatedUserId, orgid });
   }
   /** Set a user's status. (RPC key: `id` = userid.) */
   setUserStatus(userid: string, orgid: string, status: number): Promise<Rec> {
-    return this.http.call<Rec>('setUserStatus', { id: userid, orgid, status });
+    return this.#http.call<Rec>('setUserStatus', { id: userid, orgid, status });
   }
   /** Set a user's do-not-disturb state. (RPC key: `id` = userid, `dnd` = the state.) */
   setUserState(userid: string, orgid: string, dnd: boolean): Promise<Rec> {
-    return this.http.call<Rec>('setUserState', { id: userid, orgid, dnd });
+    return this.#http.call<Rec>('setUserState', { id: userid, orgid, dnd });
   }
   /** Set a user's password. (RPC key: `userid`.) */
   setUserPassword(userid: string, orgid: string, password: string): Promise<Rec> {
-    return this.http.call<Rec>('setUserPassword', { orgid, userid, password });
+    return this.#http.call<Rec>('setUserPassword', { orgid, userid, password });
   }
   /** Reset a user's password (server-generated). (RPC key: `id` = userid.) */
   resetUserPassword(userid: string, orgid: string): Promise<Rec> {
-    return this.http.call<Rec>('resetUserPassword', { id: userid, orgid });
+    return this.#http.call<Rec>('resetUserPassword', { id: userid, orgid });
   }
   /** Merge settings onto a user. (RPC key: `id` = userid; settings are spread as top-level params.) */
   setUserSettings(userid: string, orgid: string, settings: Rec): Promise<Rec> {
-    return this.http.call<Rec>('setUserSettings', { id: userid, orgid, ...settings });
+    return this.#http.call<Rec>('setUserSettings', { id: userid, orgid, ...settings });
   }
   /** Resync a user's SIP device. (RPC keys: `userid`, `termid` = device id.) */
   resyncSIPDevice(userid: string, orgid: string, termid: string): Promise<Rec> {
-    return this.http.call<Rec>('resyncSIPDevice', { orgid, userid, termid });
+    return this.#http.call<Rec>('resyncSIPDevice', { orgid, userid, termid });
   }
   /** Delete one of a user's devices. (RPC keys: `userid`, `termid` = device id.) */
   deleteDevice(userid: string, orgid: string, termid: string): Promise<Rec> {
-    return this.http.call<Rec>('deleteDevice', { orgid, userid, termid });
+    return this.#http.call<Rec>('deleteDevice', { orgid, userid, termid });
   }
 
   // ── Organizations ────────────────────────────────────────────────────────────
   /** Create an organization. Returns the created org. */
   createOrganization(input: CreateOrgInput): Promise<Organization> {
-    return this.http.call<Organization>('createOrganization', { ...input });
+    return this.#http.call<Organization>('createOrganization', { ...input });
   }
   /** Update mutable org fields (org addressed by id). */
   updateOrganization(id: string, changes: UpdateOrgInput): Promise<Organization> {
-    return this.http.call<Organization>('updateOrganization', { id, ...changes });
+    return this.#http.call<Organization>('updateOrganization', { id, ...changes });
   }
   /** Delete an organization. */
   deleteOrganization(id: string): Promise<Rec> {
-    return this.http.call<Rec>('deleteOrganization', { id });
+    return this.#http.call<Rec>('deleteOrganization', { id });
   }
   /** Set an organization's status. */
   setOrganizationStatus(id: string, status: number): Promise<Rec> {
-    return this.http.call<Rec>('setOrganizationStatus', { id, status });
+    return this.#http.call<Rec>('setOrganizationStatus', { id, status });
   }
 
   // ── Branches ──────────────────────────────────────────────────────────────────
   /** Create a branch under an org. Returns the created branch. */
   createBranch(input: CreateBranchInput): Promise<Branch> {
-    return this.http.call<Branch>('createBranch', { ...input });
+    return this.#http.call<Branch>('createBranch', { ...input });
   }
   /** Update mutable branch fields (branch addressed by id + orgid). */
   updateBranch(id: string, orgid: string, changes: UpdateBranchInput): Promise<Branch> {
-    return this.http.call<Branch>('updateBranch', { orgid, id, ...changes });
+    return this.#http.call<Branch>('updateBranch', { orgid, id, ...changes });
   }
   /** Delete a branch. */
   deleteBranch(id: string, orgid: string): Promise<Rec> {
-    return this.http.call<Rec>('deleteBranch', { id, orgid });
+    return this.#http.call<Rec>('deleteBranch', { id, orgid });
   }
   /** Set a branch's status. */
   setBranchStatus(id: string, orgid: string, status: number): Promise<Rec> {
-    return this.http.call<Rec>('setBranchStatus', { id, orgid, status });
+    return this.#http.call<Rec>('setBranchStatus', { id, orgid, status });
   }
 
   // Deferred (add with tests when needed): contacts (import/update/delete, setContactBlocked),

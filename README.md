@@ -36,20 +36,21 @@ Construct a `RingotelReadClient` and there is literally nothing else to call. A 
 ```ts
 import { RingotelReadClient, resolveOrg, fetchOrgSnapshot } from '@dszp/ringotel-lib';
 
-const ns = new RingotelReadClient({ token: process.env.RINGOTEL_API_KEY! });
-const orgs = await ns.getOrganizations();
+const rt = new RingotelReadClient({ token: process.env.RINGOTEL_API_KEY! });
+const orgs = await rt.getOrganizations();
 
 // Map a NetSapiens domain to its Ringotel org, then snapshot it.
 const org = resolveOrg('demo.12345.service', orgs);        // → { id, domain: 'demo', … }
-const snap = await fetchOrgSnapshot(ns, org!.id);
+const snap = await fetchOrgSnapshot(rt, org!.id);
 ```
 
 ### Mapping config
 
-The published lib ships only the generic engine + `NETSAPIENS_DEFAULT_TRANSFORM` and a **fictional**
-`src/netsapiens.overrides.example.ts`. Supply your real override table from your consumer via
-`MappingConfig` (preferred), or copy the example to a gitignored `src/netsapiens.overrides.local.ts`
-(excluded from the package). **Never commit real customer mappings.**
+The published lib ships the generic engine + `NETSAPIENS_DEFAULT_TRANSFORM`. Supply your real override
+table from your consumer via `MappingConfig` (preferred). A **fictional** reference template lives in
+the repo at [`src/netsapiens.overrides.example.ts`](./src/netsapiens.overrides.example.ts) — it is not
+built into the package (nothing re-exports it), so copy it from source into a gitignored
+`netsapiens.overrides.local.ts`. **Never commit real customer mappings.**
 
 ```ts
 import { resolveOrg, NETSAPIENS_DEFAULT_TRANSFORM, type MappingConfig } from '@dszp/ringotel-lib';
