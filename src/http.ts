@@ -8,8 +8,8 @@
  * READ-ONLY BOUNDARY: unlike NsClient (which can hardcode the HTTP verb), a JSON-RPC endpoint cannot
  * be transport-gated — `call('deleteUser', …)` is always physically possible here. So this class is
  * deliberately NOT exported from the public barrel. The read-only guarantee is enforced by
- * encapsulation: RingotelReadClient holds a RingotelHttp privately and exposes only get* methods; a
- * future RingotelWriteClient is the only sanctioned mutation surface. Keep RingotelHttp internal.
+ * encapsulation: RingotelReadClient holds a RingotelHttp privately and exposes only get* methods, and
+ * RingotelWriteClient is the only sanctioned mutation surface. Keep RingotelHttp internal.
  *
  * Node-free: uses only Web `fetch`/`Response`. Runs unchanged in a Cloudflare Worker, Node, or the browser.
  */
