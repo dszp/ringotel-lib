@@ -79,3 +79,11 @@ export {
   type MappingConfig,
   type ResolveOrgIdOptions,
 } from './mapping.js';
+
+// Canonical-user resolution at an extension (shared with SSO validators to prevent drift)
+export {
+  resolveCanonicalUser,
+  type CanonicalVerdict,
+  type ResolveCanonicalOptions,
+  type CanonicalResolution,
+} from './canonical.js';
