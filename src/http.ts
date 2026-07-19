@@ -94,7 +94,7 @@ export class RingotelHttp {
     }
 
     if (!res.ok) {
-      const detail = parsed && typeof parsed === 'object' ? JSON.stringify(parsed) : String(parsed).slice(0, 500);
+      const detail = (parsed && typeof parsed === 'object' ? JSON.stringify(parsed) : String(parsed)).slice(0, 500);
       throw new RingotelApiError(`${method} → ${res.status}${hint(res.status)}: ${detail}`, res.status, method, parsed?.error, parsed);
     }
     if (parsed && typeof parsed === 'object' && parsed.error) {

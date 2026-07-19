@@ -80,4 +80,22 @@ describe('RingotelHttp', () => {
     const http = new RingotelHttp({ token: 'k', fetchImpl });
     expect(await http.call('ping')).toBeUndefined();
   });
+
+  it('truncates an oversized error `detail` to 500 chars for BOTH an object and a string body', async () => {
+    // Regression for a ternary-precedence bug: `.slice(0, 500)` used to bind only to the string
+    // branch, so a large JSON object error body was stringified and included UNTRUNCATED.
+    const bigMessage = 'x'.repeat(1000);
+    const objFetch = (async () =>
+      new Response(JSON.stringify({ error: { message: bigMessage } }), { status: 500 })) as unknown as typeof fetch;
+    const httpObj = new RingotelHttp({ token: 'k', fetchImpl: objFetch });
+    const errObj = (await httpObj.call('getOrganizations').catch((e) => e)) as RingotelApiError;
+    expect(errObj).toBeInstanceOf(RingotelApiError);
+    expect(errObj.message.length).toBeLessThanOrEqual(500 + 50); // detail <= 500 chars + surrounding text
+
+    const rawFetch = (async () => new Response(bigMessage, { status: 500 })) as unknown as typeof fetch;
+    const httpStr = new RingotelHttp({ token: 'k', fetchImpl: rawFetch });
+    const errStr = (await httpStr.call('getOrganizations').catch((e) => e)) as RingotelApiError;
+    expect(errStr).toBeInstanceOf(RingotelApiError);
+    expect(errStr.message.length).toBeLessThanOrEqual(500 + 50);
+  });
 });

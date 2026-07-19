@@ -43,6 +43,17 @@ describe('resolveCanonicalUser', () => {
     expect(r.user?.id).toBe('N');
   });
 
+  it('ambiguous — no SIP-identity holder prefers the ACTIVE record over a newer inactive one', () => {
+    // In-use active record created earlier vs. a newer but inactive/tombstone record: the newest-wins
+    // fallback used to pick the inactive one, and a healer following `user` would delete the working
+    // active user. The active record must win regardless of creation order.
+    const active = u({ id: 'A', status: 1, created: 1 });
+    const newerInactive = u({ id: 'N', status: -1, created: 5 });
+    const r = resolveCanonicalUser([active, newerInactive], opts);
+    expect(r.verdict).toBe('ambiguous');
+    expect(r.user?.id).toBe('A');
+  });
+
   it('ambiguous — two records share SIP identity → unpickable (user undefined)', () => {
     const a = u({ id: 'A', username: '100r', created: 1 });
     const b = u({ id: 'B', authname: '100r', created: 2 });
