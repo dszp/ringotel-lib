@@ -1,7 +1,7 @@
 /**
  * resolveCanonicalUser — classify the Ringotel user records at one extension (within one branch) into a
  * single verdict a consumer can act on. Pure and read-only: it decides, it does not mutate. Shared by the
- * SSO validator (ringotel-ns-sso) and, in future, sv-portal-kit's resolveRtUser, so both agree on what the
+ * SSO validator (ringotel-ns-sso) and, in future, a companion portal consumer's canonical-user resolution, so both agree on what the
  * "canonical active user at an extension" is — the disagreement that caused SSO bricks.
  *
  * Verdicts:
