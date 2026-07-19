@@ -1,6 +1,6 @@
 {
   "name": "@dszp/ringotel-lib",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Portable, Node-free Ringotel AdminAPI toolkit: read-only JSON-RPC client (RingotelReadClient), org snapshot gather, and a generic source→org mapping engine. Runs unchanged in a Cloudflare Worker, Node, or the browser.",
   "type": "module",
   "license": "MIT",

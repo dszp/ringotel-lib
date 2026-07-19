@@ -5,6 +5,26 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] — 2026-07-19
+
+### Added
+
+- **`resolveCanonicalUser(users, { ext, branchid, suffix })` — classify the records at one extension.**
+  Pure and read-only: it decides, it does not mutate. Returns a verdict — `active` (exactly one record,
+  activated), `inactive-exists` (exactly one, not activated), `none`, or `ambiguous` (more than one record
+  at the extension) — plus the canonical pick and every match, so a caller can dedup. Because an app's SSO
+  login binds by **extension number**, agreeing on "the canonical user at an extension" is what keeps two
+  consumers from disagreeing and stranding an account; this puts that rule in one tested place. The
+  canonical pick prefers the record carrying the SIP identity `<ext><suffix>`, then an **active** record,
+  with most-recently-created only as the final tiebreak — and is left undefined when two records share the
+  SIP identity, so an ambiguous case fails closed rather than guessing.
+
+### Fixed
+
+- **`RingotelApiError` detail is now truncated for object error bodies too.** Operator precedence meant the
+  500-character cap bound only to the string branch, so a large structured upstream error was stringified
+  in full into the message (and into any consumer that logs it).
+
 ## [0.1.2] — 2026-07-16
 
 A hardening + packaging release. No breaking changes to the documented API.
