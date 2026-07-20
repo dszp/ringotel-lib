@@ -5,6 +5,17 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `assessUserHealth(user, { ext, suffix, siblingCount })` — pure classification of a Ringotel user
+  record into deterministic health flags (`brick`, `authname-drift`, `duplicate`, `no-trunk`,
+  `never-connected`, `tombstone`, `stale-registration`) plus a `severity`. Uses only fields already
+  present on `getUsers`, so a consumer can assess a whole cached user list without an extra API call.
+  `no-ns-device` is part of the exported vocabulary for consumers that also read a device list; it is
+  never emitted by this function. Also exports `worstSeverity` and `HEALTH_SEVERITY`.
+
 ## [0.1.3] — 2026-07-19
 
 ### Added

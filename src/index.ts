@@ -87,3 +87,14 @@ export {
   type ResolveCanonicalOptions,
   type CanonicalResolution,
 } from './canonical.js';
+
+// Per-user health classification (pure; shared so every consumer names drift identically)
+export {
+  assessUserHealth,
+  worstSeverity,
+  HEALTH_SEVERITY,
+  type HealthFlag,
+  type HealthSeverity,
+  type UserHealth,
+  type AssessHealthOptions,
+} from './health.js';
