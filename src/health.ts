@@ -21,9 +21,9 @@
  * platform's device list, which this library does not read. A consumer that has fetched the user's
  * devices appends it to `flags` itself and recomputes severity with `worstSeverity`.
  *
- * This function reports whether a record is BROKEN, not whether it is active: a deactivated record
- * (`status: 0`) that was never activated yields no flags and `severity: 'ok'`, deliberately — it isn't
- * malfunctioning, it's just off, and a consumer already tracks activation state separately.
+ * This function reports whether a record is BROKEN, not whether it is active: an unactivated record
+ * (`status: 0`) yields no flags and `severity: 'ok'`, deliberately — it isn't malfunctioning, it's just
+ * off, and a consumer already tracks activation state separately.
  */
 
 import type { User } from './model.js';
