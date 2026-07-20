@@ -17,26 +17,36 @@ describe('assessUserHealth', () => {
   });
 
   it('brick — active with no authname', () => {
+    // Defaults created:1000, stime:1000 → also legitimately never-connected; assert the real full set.
     const r = assessUserHealth(u({ status: 1, trunkid: 'T1', authname: undefined }), opts);
-    expect(r.flags).toContain('brick');
+    expect(r.flags).toEqual(['brick', 'never-connected']);
     expect(r.severity).toBe('broken');
   });
 
   it('brick takes precedence over authname-drift (no double-report)', () => {
     const r = assessUserHealth(u({ status: 1, trunkid: 'T1', authname: '' }), opts);
-    expect(r.flags).toContain('brick');
-    expect(r.flags).not.toContain('authname-drift');
+    expect(r.flags).toEqual(['brick', 'never-connected']);
   });
 
   it('authname-drift — authname present but not <ext><suffix>', () => {
     const r = assessUserHealth(u({ status: 1, authname: '100x', trunkid: 'T1', trunkstate: 1, stime: 5000 }), opts);
-    expect(r.flags).toContain('authname-drift');
+    expect(r.flags).toEqual(['authname-drift']);
     expect(r.severity).toBe('broken');
   });
 
   it('no-trunk — active but never linked to the PBX', () => {
     const r = assessUserHealth(u({ status: 1, authname: '100r', trunkstate: 1, stime: 5000 }), opts);
-    expect(r.flags).toContain('no-trunk');
+    expect(r.flags).toEqual(['no-trunk']);
+  });
+
+  it('no-trunk does not also report stale-registration (Finding 1 regression)', () => {
+    // A record with no trunk was never registered, so nothing can be "stale" about its registration —
+    // even when it has connected before (stime > created) and trunkstate reads 0.
+    const r = assessUserHealth(
+      u({ status: 1, authname: '100r', trunkid: undefined, created: 1000, stime: 5000, trunkstate: 0 }),
+      opts,
+    );
+    expect(r.flags).toEqual(['no-trunk']);
   });
 
   it('never-connected — stime equals created', () => {
@@ -44,13 +54,13 @@ describe('assessUserHealth', () => {
       u({ status: 1, authname: '100r', trunkid: 'T1', created: 1000, stime: 1000 }),
       opts,
     );
-    expect(r.flags).toContain('never-connected');
+    expect(r.flags).toEqual(['never-connected']);
     expect(r.severity).toBe('info');
   });
 
   it('never-connected is not reported for an inactive record', () => {
     const r = assessUserHealth(u({ status: -1, authname: '100r', created: 1000, stime: 1000 }), opts);
-    expect(r.flags).not.toContain('never-connected');
+    expect(r.flags).toEqual(['tombstone']);
   });
 
   it('tombstone — status -1', () => {
@@ -64,7 +74,7 @@ describe('assessUserHealth', () => {
       u({ status: 1, authname: '100r', trunkid: 'T1', trunkstate: 0, created: 1000, stime: 5000 }),
       opts,
     );
-    expect(r.flags).toContain('stale-registration');
+    expect(r.flags).toEqual(['stale-registration']);
     expect(r.severity).toBe('warn');
   });
 
@@ -73,7 +83,7 @@ describe('assessUserHealth', () => {
       u({ status: 1, authname: '100r', trunkid: 'T1', trunkstate: 1, stime: 5000 }),
       { ...opts, siblingCount: 2 },
     );
-    expect(r.flags).toContain('duplicate');
+    expect(r.flags).toEqual(['duplicate']);
     expect(r.severity).toBe('broken');
   });
 
@@ -82,7 +92,7 @@ describe('assessUserHealth', () => {
       u({ status: 1, authname: '100r', trunkid: 'T1', trunkstate: 1, created: undefined, stime: undefined }),
       opts,
     );
-    expect(r.flags).not.toContain('never-connected');
+    expect(r.flags).toEqual([]);
   });
 
   it('no-ns-device is in the vocabulary but never emitted here', () => {

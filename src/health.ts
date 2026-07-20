@@ -20,6 +20,10 @@
  * `no-ns-device` is part of the flag vocabulary but is NEVER emitted here: it depends on the telephony
  * platform's device list, which this library does not read. A consumer that has fetched the user's
  * devices appends it to `flags` itself and recomputes severity with `worstSeverity`.
+ *
+ * This function reports whether a record is BROKEN, not whether it is active: a deactivated record
+ * (`status: 0`) that was never activated yields no flags and `severity: 'ok'`, deliberately — it isn't
+ * malfunctioning, it's just off, and a consumer already tracks activation state separately.
  */
 
 import type { User } from './model.js';
@@ -38,7 +42,7 @@ export type HealthFlag =
   | 'never-connected'
   /** A deactivated/deleted remnant (`status === -1`). */
   | 'tombstone'
-  /** Advisory only: connected at some point, but the trunk is not currently registered. */
+  /** Advisory only: has a trunk and connected at some point, but is not currently registered. */
   | 'stale-registration'
   /** Set by a CONSUMER, never by this function: the expected softphone device is absent upstream. */
   | 'no-ns-device';
@@ -112,14 +116,17 @@ export function assessUserHealth(user: User, opts: AssessHealthOptions): UserHea
     flags.push('authname-drift');
   }
 
-  if (!String(user.trunkid ?? '').trim()) flags.push('no-trunk');
+  const hasTrunk = !!String(user.trunkid ?? '').trim();
+  if (!hasTrunk) flags.push('no-trunk');
 
   // `stime` is seeded from `created`, so "never connected" is stime <= created — not a recency window.
   // Both must be finite: an API response missing either must not fabricate a billing accusation.
   if (Number.isFinite(created) && Number.isFinite(stime) && stime <= created) {
     flags.push('never-connected');
-  } else if (Number(user.trunkstate) !== 1) {
-    // Advisory only, and only for a record that HAS connected before — see the header note on decay.
+  } else if (hasTrunk && Number(user.trunkstate) !== 1) {
+    // Advisory only, and only for a record that HAS a trunk AND has connected before — see the header
+    // note on decay. Deliberately exclusive with no-trunk: a record with no trunk was never registered,
+    // so there is nothing "stale" about its registration — that's one problem, not two.
     flags.push('stale-registration');
   }
 
