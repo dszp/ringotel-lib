@@ -1,6 +1,6 @@
 {
   "name": "@dszp/ringotel-lib",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Portable, Node-free Ringotel AdminAPI toolkit: read-only JSON-RPC client (RingotelReadClient), org snapshot gather, and a generic source→org mapping engine. Runs unchanged in a Cloudflare Worker, Node, or the browser.",
   "type": "module",
   "license": "MIT",
@@ -12,12 +12,24 @@
     "type": "git",
     "url": "git+https://github.com/dszp/ringotel-lib.git"
   },
-  "bugs": { "url": "https://github.com/dszp/ringotel-lib/issues" },
+  "bugs": {
+    "url": "https://github.com/dszp/ringotel-lib/issues"
+  },
   "homepage": "https://github.com/dszp/ringotel-lib#readme",
   "//publishConfig": "No `provenance: true` here on purpose: it would force provenance on EVERY publish, including the manual first one that a brand-new package requires (npm can only configure trusted publishing on a package that already exists). Provenance comes from the workflow's explicit `npm publish --provenance` in CI.",
-  "publishConfig": { "access": "public" },
-  "engines": { "node": ">=20" },
-  "keywords": ["ringotel", "voip", "admin-api", "cloudflare-workers", "netsapiens"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "ringotel",
+    "voip",
+    "admin-api",
+    "cloudflare-workers",
+    "netsapiens"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -33,7 +45,11 @@
   "main": "./dist/index.js",
   "sideEffects": false,
   "//files": "Globs exclude dist/**/*.map on purpose: the maps point at src/, which does not ship, so shipping them gives every consumer broken references and 20 dead files. Maps are still emitted locally for link: consumers.",
-  "files": ["dist/**/*.js", "dist/**/*.d.ts", "README.md"],
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "build:watch": "tsc -p tsconfig.json --watch",
