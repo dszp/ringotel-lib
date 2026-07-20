@@ -10,9 +10,14 @@
  * reported as a flag rather than left for someone to notice on a phone that will not register.
  *
  * Two field subtleties drive the rules, both confirmed against a live deployment:
- *   - `stime` ("last seen") is INITIALIZED AT CREATION. A record that has never had the app opened
- *     therefore reports a recent `stime`. Only `stime > created` means the user genuinely connected,
- *     which is what makes `never-connected` trustworthy as a billing signal.
+ *   - `stime` ("last seen") is INITIALIZED AT CREATION, and is also bumped by ADMIN API WRITES — not
+ *     only by a user actually connecting (confirmed live: an admin password change moved a dormant
+ *     record's `stime` from ~42h old to the present). A record that has never had the app opened
+ *     therefore reports a recent `stime`. Only `stime > created` means the record has seen SOME
+ *     activity, so `never-connected` is deliberately CONSERVATIVE: it under-reports (a user who never
+ *     opened the app but was touched by any admin write won't be flagged, and falls through to
+ *     `stale-registration` instead) rather than over-reporting. That asymmetry is intended — the flag
+ *     is effectively a billing accusation, so a false negative is far cheaper than a false positive.
  *   - `trunkstate` is a LIVENESS signal that decays with app inactivity — a long-dormant but perfectly
  *     healthy user reads `0`. It can therefore only ever produce the advisory `stale-registration`
  *     flag, never a 'broken' verdict, and must not be used to trigger automatic repair.
@@ -119,8 +124,9 @@ export function assessUserHealth(user: User, opts: AssessHealthOptions): UserHea
   const hasTrunk = !!String(user.trunkid ?? '').trim();
   if (!hasTrunk) flags.push('no-trunk');
 
-  // `stime` is seeded from `created`, so "never connected" is stime <= created — not a recency window.
-  // Both must be finite: an API response missing either must not fabricate a billing accusation.
+  // `stime` is seeded from `created` (and bumped by admin writes too — see the header), so "never
+  // connected" is stime <= created, NOT a recency window. Both must be finite: an API response missing
+  // either must not fabricate a billing accusation.
   if (Number.isFinite(created) && Number.isFinite(stime) && stime <= created) {
     flags.push('never-connected');
   } else if (hasTrunk && Number(user.trunkstate) !== 1) {
