@@ -68,3 +68,21 @@ describe('findByHost (local, glob/RegExp)', () => {
     expect(findByHost(index, /edge/).map((e) => e.branchid)).toEqual(['B3']);
   });
 });
+
+describe('buildOrgBranchIndex', () => {
+  it('carries the raw params.sso onto each entry', async () => {
+    const client = {
+      getOrganizations: async () => [
+        { id: 'O1', domain: 'acmevoice', params: { sso: '123/netsapiens_sso' } },
+        { id: 'O2', domain: 'noSsoOrg', params: { lang: 'en' } },
+        { id: 'O3', domain: 'emptySso', params: { sso: '' } },
+      ],
+      getBranches: async (orgid: string) => [{ id: 'B1', orgid, address: `addr-${orgid}` }],
+    } as any;
+
+    const index = await buildOrgBranchIndex(client);
+    expect(index.find((e) => e.orgid === 'O1')?.ssoService).toBe('123/netsapiens_sso');
+    expect(index.find((e) => e.orgid === 'O2')?.ssoService).toBeUndefined();
+    expect(index.find((e) => e.orgid === 'O3')?.ssoService).toBeUndefined();
+  });
+});

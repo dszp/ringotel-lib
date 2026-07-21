@@ -37,6 +37,11 @@ export interface OrgBranchEntry {
   address?: string;
   /** The SIP connect host (`provision.proxy.paddr`). */
   host?: string;
+  /** Raw `org.params.sso` — `"<serviceDefinitionId>/<serviceName>"` when an SSO service is bound to
+   *  the org, absent otherwise. Reported verbatim: whether a given binding "counts" is the consumer's
+   *  policy (it may point at a third-party IdP), and encoding one deployment's service name here
+   *  would bind this library to that deployment. */
+  ssoService?: string;
 }
 
 export interface BuildIndexOptions {
@@ -74,6 +79,9 @@ export async function buildOrgBranchIndex(client: RingotelReadClient, opts: Buil
       ...(b.name != null ? { branchName: String(b.name) } : {}),
       ...(b.address != null ? { address: String(b.address) } : {}),
       ...(branchHost(b) != null ? { host: branchHost(b)! } : {}),
+      ...(typeof org.params?.sso === 'string' && org.params.sso.length > 0
+        ? { ssoService: String(org.params.sso) }
+        : {}),
     }));
   });
   return perOrg.flat();
