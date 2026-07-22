@@ -103,8 +103,8 @@ function normAddress(a: string): string {
 /**
  * Local, network-free: resolve a NS domain (or any branch address) to its entry — case-insensitive,
  * ignoring any `:port` on either side. `branch.address` is the AUTHORITATIVE NS domain and often
- * differs from the Ringotel org domain (e.g. address "acme42" → org "acmevoice", address
- * "midmichgarage" → org "midmichigangarage"), so this is the reliable NS→(orgid, branchid) resolver.
+ * differs from the Ringotel org domain (e.g. address "acme42" → org "acmevoice"), so this is the
+ * reliable NS→(orgid, branchid) resolver.
  */
 export function findByAddress(index: OrgBranchEntry[], address: string): OrgBranchEntry | undefined {
   const target = normAddress(address);
