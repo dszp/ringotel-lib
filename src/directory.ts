@@ -42,6 +42,11 @@ export interface OrgBranchEntry {
    *  policy (it may point at a third-party IdP), and encoding one deployment's service name here
    *  would bind this library to that deployment. */
   ssoService?: string;
+  /** Raw `org.params.hidePassInEmail`. `true` when the organization's credentials email withholds the
+   *  password behind a one-time reveal link, `false` when the password is in the message itself, absent
+   *  when the organization does not report it. Reported verbatim so a consumer can word its own
+   *  instructions accurately instead of hedging across both cases. */
+  hidePassInEmail?: boolean;
 }
 
 export interface BuildIndexOptions {
@@ -81,6 +86,9 @@ export async function buildOrgBranchIndex(client: RingotelReadClient, opts: Buil
       ...(branchHost(b) != null ? { host: branchHost(b)! } : {}),
       ...(typeof org.params?.sso === 'string' && org.params.sso.length > 0
         ? { ssoService: String(org.params.sso) }
+        : {}),
+      ...(typeof org.params?.hidePassInEmail === 'boolean'
+        ? { hidePassInEmail: org.params.hidePassInEmail }
         : {}),
     }));
   });
