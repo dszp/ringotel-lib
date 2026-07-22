@@ -5,6 +5,14 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] — 2026-07-22
+
+### Fixed
+
+- **Documentation:** the `findByAddress` example now uses only fictional names, matching this project's
+  rule that every example and fixture is fictional (see CONTRIBUTING.md). No API or behavior change —
+  upgrading from 0.1.5 is a no-op for callers.
+
 ## [0.1.5] — 2026-07-22
 
 ### Added
