@@ -5,6 +5,27 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] — 2026-07-22
+
+### Added
+
+- **`OrgBranchEntry` now carries two organization settings the directory already had in hand.** Both come
+  from the `getOrganizations` response `buildOrgBranchIndex` already makes, so neither costs an extra
+  request, and both are reported **verbatim** — interpreting them is the consumer's policy, not this
+  library's:
+  - **`ssoService`** — raw `org.params.sso` (`"<serviceDefinitionId>/<serviceName>"`) when an SSO service
+    is bound to the organization. Deliberately not interpreted here: a binding may point at a third-party
+    identity provider, and encoding one deployment's service name would tie the library to that
+    deployment.
+  - **`hidePassInEmail`** — raw `org.params.hidePassInEmail`. `true` when the credentials email withholds
+    the password behind a one-time reveal link, `false` when the password is in the message itself, absent
+    when the organization does not report it. Lets a consumer word its own sign-in instructions accurately
+    instead of hedging across both cases.
+
+  **If you cache a projection of `OrgBranchEntry`, version your cache key.** A stored entry written before
+  this upgrade lacks these fields, and "absent" is indistinguishable from "this organization does not have
+  it" — which can silently produce confident, wrong instructions until the entry expires.
+
 ## [0.1.4] — 2026-07-20
 
 ### Added
