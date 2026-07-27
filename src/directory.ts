@@ -26,17 +26,17 @@ import type { RingotelReadClient } from './readClient.js';
 import type { Rec } from './model.js';
 import { branchHost, matchHost } from './branch.js';
 
-/** One flattened (org, branch) row — serializable, safe to cache as JSON. */
-export interface OrgBranchEntry {
-  orgid: string;
-  orgDomain?: string;
-  orgName?: string;
-  branchid: string;
-  branchName?: string;
-  /** The branch `address` — on NetSapiens branches this IS the NS domain. */
-  address?: string;
-  /** The SIP connect host (`provision.proxy.paddr`). */
-  host?: string;
+/**
+ * The org-level settings projected onto every row — the parts of an organization that a consumer may
+ * legitimately want to refresh on a SHORTER cadence than the index itself.
+ *
+ * Split out from `OrgBranchEntry` because these are the *volatile* fields. Which org serves a domain
+ * changes approximately never and costs a fleet-wide `getOrganizations` + per-org `getBranches` to
+ * discover; these two change whenever an operator edits the org in the Ringotel admin and cost one
+ * `getOrganization(orgid)` to re-read. A consumer that caches the index for an hour can therefore
+ * overlay a fresher copy of just these — see `orgSettings`.
+ */
+export interface OrgSettings {
   /** Raw `org.params.sso` — `"<serviceDefinitionId>/<serviceName>"` when an SSO service is bound to
    *  the org, absent otherwise. Reported verbatim: whether a given binding "counts" is the consumer's
    *  policy (it may point at a third-party IdP), and encoding one deployment's service name here
@@ -47,6 +47,41 @@ export interface OrgBranchEntry {
    *  when the organization does not report it. Reported verbatim so a consumer can word its own
    *  instructions accurately instead of hedging across both cases. */
   hidePassInEmail?: boolean;
+}
+
+/**
+ * Derive the volatile org settings from one organization record. **The single derivation** — used by
+ * `buildOrgBranchIndex`'s projection below AND by any consumer that re-reads a single org via
+ * `getOrganization(orgid)` to refresh these on a shorter cadence than the whole index.
+ *
+ * It exists precisely so those two cannot drift. A consumer that hand-rolled the `params.sso` →
+ * `ssoService` mapping for its fresher read would, the day this derivation changed, produce an overlay
+ * that silently contradicts the cached index — and the contradiction would surface as "some users are
+ * shown the wrong way to sign in", with no error anywhere.
+ *
+ * Absence is meaningful and is preserved: a key is omitted, never emitted as `undefined`, so
+ * `{...orgSettings(org)}` spreads cleanly over an existing entry without punching holes in it, and so a
+ * consumer overlaying the result replaces "SSO is bound" with "SSO is not bound" by the key going away.
+ */
+export function orgSettings(org: { params?: Rec } | null | undefined): OrgSettings {
+  const params = org?.params;
+  return {
+    ...(typeof params?.sso === 'string' && params.sso.length > 0 ? { ssoService: String(params.sso) } : {}),
+    ...(typeof params?.hidePassInEmail === 'boolean' ? { hidePassInEmail: params.hidePassInEmail } : {}),
+  };
+}
+
+/** One flattened (org, branch) row — serializable, safe to cache as JSON. */
+export interface OrgBranchEntry extends OrgSettings {
+  orgid: string;
+  orgDomain?: string;
+  orgName?: string;
+  branchid: string;
+  branchName?: string;
+  /** The branch `address` — on NetSapiens branches this IS the NS domain. */
+  address?: string;
+  /** The SIP connect host (`provision.proxy.paddr`). */
+  host?: string;
 }
 
 export interface BuildIndexOptions {
@@ -84,12 +119,9 @@ export async function buildOrgBranchIndex(client: RingotelReadClient, opts: Buil
       ...(b.name != null ? { branchName: String(b.name) } : {}),
       ...(b.address != null ? { address: String(b.address) } : {}),
       ...(branchHost(b) != null ? { host: branchHost(b)! } : {}),
-      ...(typeof org.params?.sso === 'string' && org.params.sso.length > 0
-        ? { ssoService: String(org.params.sso) }
-        : {}),
-      ...(typeof org.params?.hidePassInEmail === 'boolean'
-        ? { hidePassInEmail: org.params.hidePassInEmail }
-        : {}),
+      // ONE derivation, shared with any consumer that re-reads a single org to refresh these on a
+      // shorter cadence. Never inline this — see `orgSettings`.
+      ...orgSettings(org),
     }));
   });
   return perOrg.flat();

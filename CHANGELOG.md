@@ -5,6 +5,27 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] — 2026-07-27
+
+### Added
+
+- **`orgSettings(org)`** — a pure helper that derives the two volatile organization settings
+  (`ssoService`, `hidePassInEmail`) from one organization record's `params`, plus the **`OrgSettings`**
+  type it returns. `OrgBranchEntry` now extends `OrgSettings`, so the entry shape is unchanged.
+
+  Why it is exported rather than internal: those two fields change whenever an operator edits the
+  organization in the Ringotel admin, but discovering them via `buildOrgBranchIndex` costs a fleet-wide
+  `getOrganizations` **plus a `getBranches` per org**. A consumer that caches the index for an hour can
+  now re-read a single org with `getOrganization(orgid)` and overlay a fresher copy of just these two —
+  without hand-rolling the `params` → settings mapping, which is exactly how an overlay ends up silently
+  contradicting the index it sits on top of. `buildOrgBranchIndex` uses the same helper, so the two
+  derivations cannot drift.
+
+  Absent keys are **omitted** rather than set to `undefined`, so the result spreads cleanly over an
+  existing entry. Note that `hidePassInEmail: false` is a value, not absence.
+
+  Purely additive — upgrading from 0.1.6 changes no existing behavior.
+
 ## [0.1.6] — 2026-07-22
 
 ### Fixed

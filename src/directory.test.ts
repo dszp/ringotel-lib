@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { RingotelReadClient } from './readClient.js';
-import { buildOrgBranchIndex, findByAddress, findByHost, type OrgBranchEntry } from './directory.js';
+import { buildOrgBranchIndex, findByAddress, findByHost, orgSettings, type OrgBranchEntry } from './directory.js';
 import { mockRpcFetch } from './testkit.js';
 
 const ORGS = [
@@ -84,5 +84,43 @@ describe('buildOrgBranchIndex', () => {
     expect(index.find((e) => e.orgid === 'O1')?.ssoService).toBe('123/netsapiens_sso');
     expect(index.find((e) => e.orgid === 'O2')?.ssoService).toBeUndefined();
     expect(index.find((e) => e.orgid === 'O3')?.ssoService).toBeUndefined();
+  });
+});
+
+describe('orgSettings (the one derivation, shared with a consumer’s fresher per-org read)', () => {
+  it('reads params.sso → ssoService, ignoring empty and non-string values', () => {
+    expect(orgSettings({ params: { sso: '123/netsapiens_sso' } }).ssoService).toBe('123/netsapiens_sso');
+    expect(orgSettings({ params: { sso: '' } }).ssoService).toBeUndefined();
+    expect(orgSettings({ params: { sso: 123 } }).ssoService).toBeUndefined();
+    expect(orgSettings({ params: {} }).ssoService).toBeUndefined();
+  });
+
+  it('reads params.hidePassInEmail only when it is a real boolean — false is a VALUE, not absence', () => {
+    expect(orgSettings({ params: { hidePassInEmail: true } }).hidePassInEmail).toBe(true);
+    expect(orgSettings({ params: { hidePassInEmail: false } }).hidePassInEmail).toBe(false);
+    expect(orgSettings({ params: { hidePassInEmail: 'true' } }).hidePassInEmail).toBeUndefined();
+    expect(orgSettings({ params: {} }).hidePassInEmail).toBeUndefined();
+  });
+
+  it('OMITS absent keys rather than emitting undefined, so the result overlays cleanly', () => {
+    expect(Object.keys(orgSettings({ params: {} }))).toEqual([]);
+    expect(Object.keys(orgSettings({}))).toEqual([]);
+    expect(Object.keys(orgSettings(null))).toEqual([]);
+    expect(Object.keys(orgSettings(undefined))).toEqual([]);
+    // The overlay contract: spreading a settings object with no `ssoService` must not punch a hole in an
+    // entry that HAS one -- a consumer clears the two fields by replacing them wholesale, deliberately.
+    expect({ ssoService: 'x', ...orgSettings({ params: {} }) }.ssoService).toBe('x');
+  });
+
+  it('agrees EXACTLY with what buildOrgBranchIndex projects — the drift this helper exists to prevent', async () => {
+    const org = { id: 'O1', domain: 'acmevoice', params: { sso: '123/netsapiens_sso', hidePassInEmail: false } };
+    const c = {
+      getOrganizations: async () => [org],
+      getBranches: async (orgid: string) => [{ id: 'B1', orgid, address: 'acme42' }],
+    } as any;
+    const entry = (await buildOrgBranchIndex(c))[0]!;
+    const fresh = orgSettings(org);
+    expect(fresh.ssoService).toBe(entry.ssoService);
+    expect(fresh.hidePassInEmail).toBe(entry.hidePassInEmail);
   });
 });

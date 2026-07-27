@@ -64,7 +64,9 @@ export {
   buildOrgBranchIndex,
   findByAddress,
   findByHost,
+  orgSettings,
   type OrgBranchEntry,
+  type OrgSettings,
   type BuildIndexOptions,
 } from './directory.js';
 
