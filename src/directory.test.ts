@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { RingotelReadClient } from './readClient.js';
-import { buildOrgBranchIndex, findByAddress, findByHost, orgSettings, type OrgBranchEntry } from './directory.js';
+import { buildOrgBranchIndex, findAllByAddress, findByAddress, findByHost, orgSettings, type OrgBranchEntry } from './directory.js';
 import { mockRpcFetch } from './testkit.js';
 
 const ORGS = [
@@ -122,5 +122,40 @@ describe('orgSettings (the one derivation, shared with a consumer’s fresher pe
     const fresh = orgSettings(org);
     expect(fresh.ssoService).toBe(entry.ssoService);
     expect(fresh.hidePassInEmail).toBe(entry.hidePassInEmail);
+  });
+});
+
+describe('findAllByAddress (every match, not just the first)', () => {
+  const shared: OrgBranchEntry[] = [
+    { orgid: 'O1', branchid: 'B1', branchName: 'Main', address: 'acme42' },
+    { orgid: 'O1', branchid: 'B2', branchName: 'Warehouse', address: 'ACME42' },
+    { orgid: 'O2', branchid: 'B3', address: 'other.example.net' },
+  ];
+
+  it('returns every entry sharing an address, case-insensitively', () => {
+    expect(findAllByAddress(shared, 'acme42').map((e) => e.branchid)).toEqual(['B1', 'B2']);
+  });
+
+  it('ignores a trailing :port on either side, like findByAddress', () => {
+    const withPort: OrgBranchEntry[] = [
+      { orgid: 'O1', branchid: 'B9', address: 'demo.12345.service:5060' },
+      { orgid: 'O1', branchid: 'B8', address: 'demo.12345.service' },
+    ];
+    expect(findAllByAddress(withPort, 'demo.12345.service').map((e) => e.branchid)).toEqual(['B9', 'B8']);
+    expect(findAllByAddress(withPort, 'demo.12345.service:5061').map((e) => e.branchid)).toEqual(['B9', 'B8']);
+  });
+
+  it('returns an empty array when nothing matches', () => {
+    expect(findAllByAddress(shared, 'nope')).toEqual([]);
+  });
+
+  it('skips entries with no address rather than matching them', () => {
+    const sparse: OrgBranchEntry[] = [{ orgid: 'O1', branchid: 'B1' }, { orgid: 'O1', branchid: 'B2', address: 'acme42' }];
+    expect(findAllByAddress(sparse, 'acme42').map((e) => e.branchid)).toEqual(['B2']);
+  });
+
+  it('findByAddress stays exactly the first of findAllByAddress', () => {
+    expect(findByAddress(shared, 'acme42')?.branchid).toBe('B1');
+    expect(findByAddress(shared, 'nope')).toBeUndefined();
   });
 });
