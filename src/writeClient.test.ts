@@ -86,6 +86,20 @@ describe('RingotelWriteClient — user writes send the exact spec params', () =>
     await client.setUserSettings('U1', 'O', { voicemail: true, callwaiting: false });
     expect(calls[0]!.params).toEqual({ id: 'U1', orgid: 'O', voicemail: true, callwaiting: false });
   });
+
+  it('moveUserToBranch sends updateUser with just the target branchid', async () => {
+    const { client, calls } = make();
+    await client.moveUserToBranch('U1', 'O', 'B2');
+    expect(calls[0]).toEqual(
+      expect.objectContaining({ method: 'updateUser', params: { orgid: 'O', id: 'U1', branchid: 'B2' } }),
+    );
+  });
+
+  it('moveUserToBranch sends NO other field — a move must not rewrite identity', async () => {
+    const { client, calls } = make();
+    await client.moveUserToBranch('U1', 'O', 'B2');
+    expect(Object.keys(calls[0]!.params).sort()).toEqual(['branchid', 'id', 'orgid']);
+  });
 });
 
 describe('RingotelWriteClient — org & branch writes', () => {
