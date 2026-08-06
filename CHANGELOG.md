@@ -5,6 +5,36 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] — 2026-08-05
+
+### Added
+
+- **`findAllByAddress(index, address)`** — every org+branch entry bound to an address, under the same
+  case- and `:port`-insensitive normalisation `findByAddress` already used.
+
+  One organization can legitimately serve one PBX domain from **several connections** — per site, per
+  white-label app, or a pilot beside production. `findByAddress` returns only the first match, so a
+  consumer facing that topology silently operated on one connection and ignored the rest, with nothing
+  to indicate the answer had been plural. `findByAddress` is now defined as the first of
+  `findAllByAddress`, so the two normalisations cannot drift.
+
+  Entries sharing an address but carrying **different `orgid`s** are a misconfiguration rather than a
+  topology — there is no single source of truth for that domain — and callers should refuse rather
+  than resolve. This function reports; it does not decide.
+
+- **`RingotelWriteClient.moveUserToBranch(userid, orgid, branchid)`** — move a user to another
+  connection within the same organization, in place.
+
+  It issues `updateUser` with only `branchid`. The record keeps its `id`, `created`, `trunkid`,
+  `username`/`authname` and `status`; only `branchid` and `stime` change, and the move is reversible.
+  Because the SIP identity survives, a PBX-side device provisioned as `<extension><suffix>` needs no
+  change and no password rotation — reassignment is a move, not a delete-and-recreate.
+
+  ⚠️ Whether a **registered device or live app session** survives is unverified; the probed record had
+  none. Confirm against your own deployment before promising a user they will stay signed in.
+
+Purely additive — upgrading from 0.1.7 changes no existing behavior.
+
 ## [0.1.7] — 2026-07-27
 
 ### Added
