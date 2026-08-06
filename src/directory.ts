@@ -133,14 +133,32 @@ function normAddress(a: string): string {
 }
 
 /**
+ * Local, network-free: **every** entry bound to a NS domain (or any branch address) — case-insensitive,
+ * ignoring any `:port` on either side.
+ *
+ * One organization can legitimately serve one NS domain from **several connections** (Ringotel's word
+ * for a branch): per site, per white-label app, or a pilot beside production. `findByAddress` returns
+ * only the first, which cannot express that topology at all — a consumer using it silently operates on
+ * one connection and ignores the rest. Use this when the answer may legitimately be plural, and treat
+ * two entries carrying two DIFFERENT `orgid`s as a misconfiguration to refuse rather than resolve: a
+ * domain served by two organizations has no single source of truth.
+ */
+export function findAllByAddress(index: OrgBranchEntry[], address: string): OrgBranchEntry[] {
+  const target = normAddress(address);
+  return index.filter((e) => typeof e.address === 'string' && normAddress(e.address) === target);
+}
+
+/**
  * Local, network-free: resolve a NS domain (or any branch address) to its entry — case-insensitive,
  * ignoring any `:port` on either side. `branch.address` is the AUTHORITATIVE NS domain and often
  * differs from the Ringotel org domain (e.g. address "acme42" → org "acmevoice"), so this is the
  * reliable NS→(orgid, branchid) resolver.
+ *
+ * Returns the FIRST match. When a domain may be served by more than one connection, use
+ * `findAllByAddress` instead — this one cannot tell you that the answer was plural.
  */
 export function findByAddress(index: OrgBranchEntry[], address: string): OrgBranchEntry | undefined {
-  const target = normAddress(address);
-  return index.find((e) => typeof e.address === 'string' && normAddress(e.address) === target);
+  return findAllByAddress(index, address)[0];
 }
 
 /** Local, network-free: all entries whose connect host matches a glob (`*.example.net`) or RegExp. */

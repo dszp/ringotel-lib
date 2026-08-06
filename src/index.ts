@@ -62,6 +62,7 @@ export { resolveBranch, resolveBranchOrThrow, branchHost, matchHost, type Resolv
 // Org+branch directory (expensive gather → cache in consumer → pure local lookups)
 export {
   buildOrgBranchIndex,
+  findAllByAddress,
   findByAddress,
   findByHost,
   orgSettings,

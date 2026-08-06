@@ -125,6 +125,30 @@ export class RingotelWriteClient {
   updateUser(userid: string, orgid: string, changes: UpdateUserInput): Promise<User> {
     return this.#http.call<User>('updateUser', { orgid, id: userid, ...changes });
   }
+  /**
+   * Move a user to another **connection** (branch) within the SAME organization — an in-place
+   * relocation, not a re-provision.
+   *
+   * Verified against a live deployment: `id`, `created`, `trunkid`, `username`/`authname`, `status`
+   * and the `info.*` profile all survive; only `branchid` and `stime` change, and the move is
+   * reversible. Because the SIP identity is untouched, a PBX-side device provisioned as
+   * `<extension><suffix>` needs no change and no password rotation — which is what makes reassigning a
+   * user between connections a single call rather than a delete-and-recreate.
+   *
+   * ⚠️ Whether a **registered device or live app session** survives the move is unverified — the
+   * probed record had no registered device. Until you have confirmed it against your own deployment,
+   * tell the user they may have to sign in again rather than promising they will not.
+   *
+   * Moving a user to a branch in a DIFFERENT organization is not supported by this call; `orgid`
+   * addresses the user, and a cross-org move is a create plus a delete.
+   */
+  moveUserToBranch(userid: string, orgid: string, branchid: string): Promise<User> {
+    // Deliberately via updateUser rather than a bare `call`: one place maps userid → the RPC's `id`.
+    // `branchid` rides the UpdateUserInput index signature on purpose — it is a structural field, not a
+    // profile one, and listing it as a named optional would invite silent branch writes from callers
+    // that meant to edit a name.
+    return this.updateUser(userid, orgid, { branchid });
+  }
   /** Delete a user. (RPC key: `id` = userid.) */
   deleteUser(userid: string, orgid: string): Promise<Rec> {
     return this.#http.call<Rec>('deleteUser', { id: userid, orgid });
