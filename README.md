@@ -101,7 +101,7 @@ Unlike a REST wrapper, this library **enumerates** the AdminAPI calls it covers:
 transport is private, so a method here is the only way to reach a method there. If a call you need is
 missing, it needs adding — that's the trade for the read-only guarantee being structural.
 
-### `RingotelReadClient` — 22 calls, no way to mutate
+### `RingotelReadClient` — 29 calls, no way to mutate
 
 | Area | Methods |
 |---|---|
@@ -111,7 +111,8 @@ missing, it needs adding — that's the trade for the read-only guarantee being 
 | Devices / SIP | `getSIPCredentials(orgid, userid, protocol?, termpass?)` |
 | Contacts | `getContacts(orgid)` · `getBlockedContacts(orgid)` · `getPhoneBookURL(orgid, userid, format)` |
 | Catalog | `getTemplates()` · `getRegions()` · `getPackages()` · `getServices(orgid)` |
-| Messaging | `getSMSTrunks(orgid)` · `getAgents(orgid)` |
+| Messaging | `getSMSTrunks(orgid)` · `getAgents(orgid)` · `getChats(orgid, trunkid)` · `getOptoutList(orgid, trunkid)` |
+| Logs and history | `getCalls(orgid, begin, end, userid?)` · `getEventLog(orgid, begin, end)` · `getAccountHistory(begin, end)` (admin audit trail: writes only) · `getActivitySubjects(orgid)` · `getAIUsageInfo(domain, begin, end)` |
 
 ### `RingotelWriteClient` — 24 calls, a separate class on purpose
 

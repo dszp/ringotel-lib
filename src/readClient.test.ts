@@ -91,6 +91,31 @@ describe('RingotelReadClient — RPC method + param shaping', () => {
   });
 });
 
+describe('RingotelReadClient — logs and history', () => {
+  it('sends the log/history reads with the right params', async () => {
+    const { client, calls } = make();
+    await client.getCalls('ORG1', 1000, 2000);
+    await client.getCalls('ORG1', 1000, 2000, 'USER1');
+    await client.getEventLog('ORG1', 1000, 2000);
+    await client.getAccountHistory(1000, 2000);
+    await client.getChats('ORG1', 'TR1');
+    await client.getOptoutList('ORG1', 'TR1');
+    await client.getActivitySubjects('ORG1');
+    await client.getAIUsageInfo('acme', 1000, 2000);
+
+    expect(calls.map((c) => [c.method, c.params])).toEqual([
+      ['getCalls', { orgid: 'ORG1', begin: 1000, end: 2000 }],
+      ['getCalls', { orgid: 'ORG1', begin: 1000, end: 2000, userid: 'USER1' }],
+      ['getEventLog', { orgid: 'ORG1', begin: 1000, end: 2000 }],
+      ['getAccountHistory', { begin: 1000, end: 2000 }],
+      ['getChats', { orgid: 'ORG1', trunkid: 'TR1' }],
+      ['getOptoutList', { orgid: 'ORG1', trunkid: 'TR1' }],
+      ['getActivitySubjects', { orgid: 'ORG1' }],
+      ['getAIUsageInfo', { domain: 'acme', begin: 1000, end: 2000 }],
+    ]);
+  });
+});
+
 describe('RingotelReadClient — orgid injection (opt-in)', () => {
   it('does NOT inject orgid by default', async () => {
     const { fetchImpl } = mockRpcFetch({ results: { getUsers: [{ id: 'U1' }], getUser: { id: 'U1' } } });

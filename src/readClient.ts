@@ -14,7 +14,10 @@
 
 import { RingotelHttp, type RingotelHttpConfig } from './http.js';
 import type {
+  AccountHistoryEntry,
   Branch,
+  CallRecord,
+  EventLogEntry,
   Contact,
   Organization,
   Package,
@@ -130,5 +133,39 @@ export class RingotelReadClient {
   }
   getAgents(orgid: string): Promise<Rec[]> {
     return this.#http.call<Rec[]>('getAgents', { orgid });
+  }
+
+  // ── Logs and history ─────────────────────────────────────────────────────────
+  // begin/end are Unix ms. Ringotel returns whatever falls in the window, with no paging, so callers
+  // fetching a long history should walk it in windows (a few months each).
+
+  /** Call log for an organization, optionally one user. Goes back to the org's first call. */
+  getCalls(orgid: string, begin: number, end: number, userid?: string): Promise<CallRecord[]> {
+    const params: Record<string, unknown> = { orgid, begin, end };
+    if (userid !== undefined) params.userid = userid;
+    return this.#http.call<CallRecord[]>('getCalls', params);
+  }
+  /** An organization's event log. */
+  getEventLog(orgid: string, begin: number, end: number): Promise<EventLogEntry[]> {
+    return this.#http.call<EventLogEntry[]>('getEventLog', { orgid, begin, end });
+  }
+  /** The account's admin audit trail: every write via the Admin API or portal. Reads are not logged. */
+  getAccountHistory(begin: number, end: number): Promise<AccountHistoryEntry[]> {
+    return this.#http.call<AccountHistoryEntry[]>('getAccountHistory', { begin, end });
+  }
+  /** SMS conversations on one trunk. */
+  getChats(orgid: string, trunkid: string): Promise<Rec[]> {
+    return this.#http.call<Rec[]>('getChats', { orgid, trunkid });
+  }
+  /** Numbers that opted out of SMS on one trunk. */
+  getOptoutList(orgid: string, trunkid: string): Promise<Rec[]> {
+    return this.#http.call<Rec[]>('getOptoutList', { orgid, trunkid });
+  }
+  getActivitySubjects(orgid: string): Promise<Rec> {
+    return this.#http.call<Rec>('getActivitySubjects', { orgid });
+  }
+  /** AI feature usage — keyed by the org's domain string, not orgid. */
+  getAIUsageInfo(domain: string, begin: number, end: number): Promise<Rec> {
+    return this.#http.call<Rec>('getAIUsageInfo', { domain, begin, end });
   }
 }

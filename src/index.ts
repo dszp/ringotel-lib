@@ -32,6 +32,9 @@ export type {
   Contact,
   Template,
   SmsTrunk,
+  CallRecord,
+  EventLogEntry,
+  AccountHistoryEntry,
 } from './model.js';
 
 // Error + config type (NOT the RingotelHttp class — see boundary note above)

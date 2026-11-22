@@ -5,6 +5,15 @@ All notable changes to `@dszp/ringotel-lib` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] — 2026-11-22
+
+### Added
+
+- `RingotelReadClient`: `getCalls(orgid, begin, end, userid?)`, `getEventLog(orgid, begin, end)`,
+  `getAccountHistory(begin, end)`, `getChats(orgid, trunkid)`, `getOptoutList(orgid, trunkid)`,
+  `getActivitySubjects(orgid)`, `getAIUsageInfo(domain, begin, end)`.
+- Types `CallRecord`, `EventLogEntry`, `AccountHistoryEntry`.
+
 ## [0.1.8] — 2026-08-05
 
 ### Added
@@ -199,7 +208,12 @@ Initial public release.
 - `baseUrl` defaults to Ringotel's public shell endpoint and is overridable; nothing in this package
   is bound to a particular deployment.
 
-[Unreleased]: https://github.com/dszp/ringotel-lib/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/dszp/ringotel-lib/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.9
+[0.1.8]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.8
+[0.1.7]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.7
+[0.1.6]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.6
+[0.1.5]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.5
 [0.1.4]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.4
 [0.1.3]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.3
 [0.1.2]: https://github.com/dszp/ringotel-lib/releases/tag/v0.1.2

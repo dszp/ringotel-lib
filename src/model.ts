@@ -141,3 +141,48 @@ export type Template = Rec;
 
 /** An SMS trunk (`getSMSTrunks`). */
 export type SmsTrunk = Rec;
+
+/** One call from `getCalls`. Ringotel uses single-letter keys. */
+export interface CallRecord {
+  /** Calling number. */
+  a: string;
+  /** Called number. */
+  b: string;
+  /** Standard (Q.850) hangup cause code. */
+  c: number;
+  /** Call start, Unix ms. */
+  t: number;
+  /** Duration in seconds. */
+  d: number;
+  /** True when the call was outgoing. Absent on some records. */
+  o?: boolean;
+}
+
+/** One entry of an organization's event log (`getEventLog`). */
+export interface EventLogEntry {
+  message: string;
+  /** Unix ms. */
+  time: number;
+  /** The user the event concerns, when there is one. */
+  userid?: string;
+  [k: string]: unknown;
+}
+
+/**
+ * One entry of the account's admin audit trail (`getAccountHistory`): every write made through the
+ * Admin API or the admin portal. Reads are not recorded.
+ */
+export interface AccountHistoryEntry {
+  /** Who made the change: an admin id, `ADMIN` (account holder), `API Key`, or a Ringotel-side actor. */
+  admid: string;
+  /** The RPC method that was called, e.g. `updateUser`. */
+  method: string;
+  /** Unix ms. */
+  time: number;
+  /** Source IP address, or null. */
+  ipaddr: string | null;
+  /** The call's params as a JSON STRING. Ringotel masks password values as asterisks. */
+  params: string;
+  /** Absent for account-level changes. */
+  orgid?: string;
+}
